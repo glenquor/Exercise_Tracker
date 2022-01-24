@@ -6,7 +6,7 @@ body {
   font-family:sans-serif;
   margin: 25px;
   color: #222;
-  background-color: #f5f5f5;
+  background-color: #85DCB0;
 }
 
 h1 {
@@ -21,7 +21,7 @@ p {
 form {
   margin-bottom: 25px;
   padding: 15px;
-  background-color: #87D37C;
+  background-color: #41B3A3;
   display: inline-block;
   width: 100%;
   max-width: 340px;
@@ -56,4 +56,18 @@ code {
   font-size: 1.2em;
   background-color: #FFFEC4;
   padding: 2px;
+}
+
+.row-style{
+  display: flex;
+  justify-content: center;
+}
+
+.row-style-title{
+  display: flex;
+  justify-content: center;
+  background-color: #41B3A3;
+  margin-bottom: 30px;
+  margin-top: 20px;
+  box-shadow:  5px 10px 20px #888888;
 }
