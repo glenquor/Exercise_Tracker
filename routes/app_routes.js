@@ -75,9 +75,23 @@ router.post('/api/users/:_id/exercises', async (req,res) =>{
   }
 });
 
-// this route is not finished
-router.get('/api/users/:_id/logs', (req,res) => {
-  res.send('Hello');
+router.get('/api/users/:_id/logs', async (req,res) => {
+  const allUserExercises = await User.findById(req.params._id);
+  let allUserExercisesArray = [];
+  allUserExercisesArray = allUserExercises.log.map((data) => {
+    return{
+      "description": data.description,
+      "duration": data.duration,
+      "date": data.date.toDateString()
+    }
+  });
+  console.log(allUserExercisesArray);
+  res.json({
+    "_id": allUserExercises._id,
+    "username": allUserExercises.username,
+    "count": allUserExercises.count,
+    "log": allUserExercisesArray
+  });
 });
 
 module.exports = router;
