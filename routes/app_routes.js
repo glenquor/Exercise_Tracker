@@ -35,7 +35,7 @@ router.get('/api/users', async (req,res) =>{
 });
 
 router.post('/api/users/:_id/exercises', async (req,res) =>{
-  if (req.body.date === '' || (typeof req.body.date === 'undefined' || req.body.date === 'Invalid Date')) {
+  if (req.body.date === '' || req.body.date === undefined) {
     const newExercise = new Exercise ({
       description: req.body.description, 
       duration: req.body.duration, 
@@ -76,22 +76,242 @@ router.post('/api/users/:_id/exercises', async (req,res) =>{
 });
 
 router.get('/api/users/:_id/logs', async (req,res) => {
+  const { to, limit } = req.query;
+  const fromP = req.query.from;
   const allUserExercises = await User.findById(req.params._id);
   let allUserExercisesArray = [];
-  allUserExercisesArray = allUserExercises.log.map((data) => {
-    return{
-      "description": data.description,
-      "duration": data.duration,
-      "date": data.date.toDateString()
+  // all of them are undefined
+  if (fromP === undefined && to === undefined && limit === undefined) {
+    allUserExercisesArray = allUserExercises.log.map((data) => {
+      return{
+        "description": data.description,
+        "duration": data.duration,
+        "date": data.date.toDateString()
+      }
+    });
+    res.json({
+      "_id": allUserExercises._id,
+      "username": allUserExercises.username,
+      "count": allUserExercises.count,
+      "log": allUserExercisesArray
+    }); 
+  }
+  // Just 'limit' undefined
+  else if(fromP !== undefined && to !== undefined && limit === undefined) {
+    const filtered = allUserExercises.log.filter(data => {
+      return data.date >= new Date(fromP) && data.date <= new Date(to);
+    });
+    allUserExercisesArray = filtered.map((data) => {
+      return{
+        "description": data.description,
+        "duration": data.duration,
+        "date": data.date.toDateString()
+      }
+    });
+    res.json({
+      "_id": allUserExercises._id,
+      "username": allUserExercises.username,
+      "from": new Date(fromP).toDateString(),
+      "to": new Date(to).toDateString(),
+      "count":  allUserExercisesArray.length,
+      "log": allUserExercisesArray
+    }); 
+  }
+  // 'fromP' and 'limit' undefined
+  else if(fromP === undefined && to !== undefined && limit === undefined) {
+    const filtered = allUserExercises.log.filter(data => {
+      return data.date <= new Date(to);
+    });
+    allUserExercisesArray = filtered.map((data) => {
+      return{
+        "description": data.description,
+        "duration": data.duration,
+        "date": data.date.toDateString()
+      }
+    });        
+    res.json({
+      "_id": allUserExercises._id,
+      "username": allUserExercises.username,
+      "to": new Date(to).toDateString(),
+      "count":  allUserExercisesArray.length,
+      "log": allUserExercisesArray
+    }); 
+  }
+  // 'to' and 'limit' undefined
+  else if(fromP !== undefined && to === undefined && limit === undefined) {
+    const filtered = allUserExercises.log.filter(data => {
+      return data.date >= new Date(fromP);
+    });
+    allUserExercisesArray = filtered.map((data) => {
+      return{
+        "description": data.description,
+        "duration": data.duration,
+        "date": data.date.toDateString()
+      }
+    });        
+    res.json({
+      "_id": allUserExercises._id,
+      "username": allUserExercises.username,
+      "from": new Date(fromP).toDateString(),
+      "count":  allUserExercisesArray.length,
+      "log": allUserExercisesArray
+    }); 
+  }
+  // Just 'fromP' undefined
+  else if(fromP === undefined && to !== undefined && limit !== undefined) {
+    const filtered = allUserExercises.log.filter(data => {
+      return data.date <= new Date(to);
+    });
+    limitInt = parseInt(limit);
+    if (0 < limitInt && limitInt <= filtered.length) {
+      for (let i=0; i<limitInt; i++) {
+        allUserExercisesArray.push({
+          "description": filtered[filtered.length-1-i].description,
+          "duration": filtered[filtered.length-1-i].duration,
+          "date": filtered[filtered.length-1-i].date.toDateString()
+        });
+      }
+      res.json({
+        "_id": allUserExercises._id,
+        "username": allUserExercises.username,
+        "to": new Date(to).toDateString(),
+        "count":  allUserExercisesArray.length,
+        "log": allUserExercisesArray
+      });  
     }
-  });
-  console.log(allUserExercisesArray);
-  res.json({
-    "_id": allUserExercises._id,
-    "username": allUserExercises.username,
-    "count": allUserExercises.count,
-    "log": allUserExercisesArray
-  });
+    else { // filtered.length menor limit
+      allUserExercisesArray = filtered.map((data) => {
+        return{
+          "description": data.description,
+          "duration": data.duration,
+          "date": data.date.toDateString()
+        }
+      });
+      res.json({
+        "_id": allUserExercises._id,
+        "username": allUserExercises.username,
+        "to": new Date(to).toDateString(),
+        "count":  allUserExercisesArray.length,
+        "log": allUserExercisesArray
+      });  
+    }
+  }
+  // Just 'to' undefined
+  else if(fromP !== undefined && to === undefined && limit !== undefined) {
+    const filtered = allUserExercises.log.filter(data => {
+      return data.date >= new Date(fromP);
+    });
+    limitInt = parseInt(limit);
+    if (0 < limitInt && limitInt <= filtered.length) {
+      for (let i=0; i<limitInt; i++) {
+        allUserExercisesArray.push({
+          "description": filtered[filtered.length-1-i].description,
+          "duration": filtered[filtered.length-1-i].duration,
+          "date": filtered[filtered.length-1-i].date.toDateString()
+        });
+      }
+      res.json({
+        "_id": allUserExercises._id,
+        "username": allUserExercises.username,
+        "from": new Date(fromP).toDateString(),
+        "count":  allUserExercisesArray.length,
+        "log": allUserExercisesArray
+      });  
+    }
+    else { // filtered.length menor limit
+      allUserExercisesArray = filtered.map((data) => {
+        return{
+          "description": data.description,
+          "duration": data.duration,
+          "date": data.date.toDateString()
+        }
+      }); 
+      res.json({
+        "_id": allUserExercises._id,
+        "username": allUserExercises.username,
+        "from": new Date(fromP).toDateString(),
+        "count":  allUserExercisesArray.length,
+        "log": allUserExercisesArray
+      });  
+    }
+  }
+  // 'from' and 'to' undefined
+  else if(fromP === undefined && to === undefined && limit !== undefined) {
+    limitInt = parseInt(limit);
+    if (0 < limitInt && limitInt <= allUserExercises.log.length) {
+      for (let i=0; i<limitInt; i++) {
+        allUserExercisesArray.push({
+          "description": allUserExercises.log[allUserExercises.log.length-1-i].description,
+          "duration": allUserExercises.log[allUserExercises.log.length-1-i].duration,
+          "date": allUserExercises.log[allUserExercises.log.length-1-i].date.toDateString()
+        });
+      }
+      res.json({
+        "_id": allUserExercises._id,
+        "username": allUserExercises.username,
+        "from": new Date(fromP).toDateString(),
+        "count":  allUserExercisesArray.length,
+        "log": allUserExercisesArray
+      });  
+    }
+    else { // filtered.length menor limit
+      allUserExercisesArray = allUserExercises.log.map((data) => {
+        return{
+          "description": data.description,
+          "duration": data.duration,
+          "date": data.date.toDateString()
+        }
+      }); 
+      res.json({
+        "_id": allUserExercises._id,
+        "username": allUserExercises.username,
+        "from": new Date(fromP).toDateString(),
+        "count":  allUserExercisesArray.length,
+        "log": allUserExercisesArray
+      });  
+    }
+  }
+  // neither of them are undefined
+  else {
+    const filtered = allUserExercises.log.filter(data => {
+      return data.date >= new Date(fromP) && data.date <= new Date(to);
+    });
+    limitInt = parseInt(limit);
+    if (0 < limitInt && limitInt <= filtered.length) {
+      for (let i=0; i<limitInt; i++) {
+        allUserExercisesArray.push({
+          "description": filtered[filtered.length-1-i].description,
+          "duration": filtered[filtered.length-1-i].duration,
+          "date": filtered[filtered.length-1-i].date.toDateString()
+        });
+      }
+      res.json({
+        "_id": allUserExercises._id,
+        "username": allUserExercises.username,
+        "from": new Date(fromP).toDateString(),
+        "to": new Date(to).toDateString(),
+        "count":  allUserExercisesArray.length,
+        "log": allUserExercisesArray
+      });  
+    }
+    else { // filtered.length menor limit
+      allUserExercisesArray = filtered.map((data) => {
+        return{
+          "description": data.description,
+          "duration": data.duration,
+          "date": data.date.toDateString()
+        }
+      }); 
+      res.json({
+        "_id": allUserExercises._id,
+        "username": allUserExercises.username,
+        "from": new Date(fromP).toDateString(),
+        "to": new Date(to).toDateString(),
+        "count":  allUserExercisesArray.length,
+        "log": allUserExercisesArray
+      });  
+    }
+  }
 });
 
 module.exports = router;
